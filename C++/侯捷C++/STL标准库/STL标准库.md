@@ -1190,6 +1190,806 @@ std::queue 是一个简单而强大的容器适配器，提供了先进先出的
 
 ### 2.4关联容器
 
-##### set / multiset
+#### 红黑树RB-Tree
+
+在 C++ 标准模板库（STL）中，红黑树（RB-Tree）是一种自平衡的二叉搜索树（Binary Search Tree，BST），用于实现有序的关联容器，如 std::map 和 std::set。红黑树确保了树的高度保持对数级别，从而提供了高效的插入、删除和查找操作。下面详细介绍红黑树的特点、性质、操作以及在 STL 中的应用。
+
+**红黑树的特点**
+
+1. **自平衡**：红黑树是一种自平衡的二叉搜索树，它通过对树的节点进行着色和重排，确保树的高度在对数级别，从而保证了基本操作的时间复杂度为 O(log n)。
+2. **节点颜色**：每个节点都有一个颜色属性（红色或黑色），这些颜色属性帮助维持树的平衡。
+3. **属性和约束**：
+   * **节点着色**：每个节点要么是红色，要么是黑色。
+   * **根节点**：根节点是黑色。
+   * **红色节点的子节点**：红色节点的两个子节点必须是黑色（即红色节点不能有红色子节点）。
+   * **黑色节点路径**：从任何节点到其每个叶子节点的路径上，必须包含相同数量的黑色节点（称为黑高）。
+   * **空节点（Nil 节点）**：所有空节点（叶子节点的子节点）被视为黑色，并且没有实际存储数据。
+
+**红黑树的操作**
+
+1. **插入操作**：插入新节点时，首先将节点插入到适当的位置，然后调整树的结构和节点的颜色以保持红黑树的性质。这包括：
+   * 将新节点着色为红色。
+   * 根据父节点和叔叔节点的颜色进行调整（可能需要旋转和重新着色）。
+   * 如果需要，进行旋转（左旋或右旋）以维持树的平衡。
+2. **删除操作**：删除节点时，可能需要处理几个复杂情况，以确保树的性质保持不变。这包括：
+   * 删除节点并替换它。
+   * 调整树的结构和颜色，可能需要进行旋转和重新着色，以保持平衡。
+3. **查找操作**：查找操作类似于二叉搜索树的查找操作，时间复杂度为 O(log n)。
+4. **旋转操作**：
+   * **左旋（Left Rotation）**：将当前节点的右子树旋转到当前节点的位置，使当前节点成为左子树的子节点。
+   * **右旋（Right Rotation）**：将当前节点的左子树旋转到当前节点的位置，使当前节点成为右子树的子节点。
+
+**红黑树的 STL 应用**
+
+在 C++ STL 中，`std::map` 和 `std::set` 是基于红黑树实现的容器。它们利用红黑树的自平衡性质来提供高效的查找、插入和删除操作。
+
+1. **`std::set`**：一个有序的集合容器，所有元素都是唯一的。底层使用红黑树存储元素，元素按照升序排列。
+
+```c++
+#include <set>
+#include <iostream>
+
+int main() {
+    std::set<int> s;
+    s.insert(3);
+    s.insert(1);
+    s.insert(2);
+
+    for (int x : s) {
+        std::cout << x << " ";
+    }
+    // 输出：1 2 3
+
+    return 0;
+}
+```
+
+2. **`std::map`**：一个有序的关联容器，存储键值对，每个键是唯一的。底层使用红黑树，按键的升序排列。
+
+```c++
+#include <map>
+#include <iostream>
+
+int main() {
+    std::map<int, std::string> m;
+    m[1] = "one";
+    m[2] = "two";
+    m[3] = "three";
+
+    for (const auto& pair : m) {
+        std::cout << pair.first << " => " << pair.second << std::endl;
+    }
+    // 输出：
+    // 1 => one
+    // 2 => two
+    // 3 => three
+
+    return 0;
+}
+```
+
+**红黑树的复杂度**
+
+* **查找操作**：O(log n)，因为树的高度是对数级别的。
+* **插入操作**：O(log n)，由于需要调整树的平衡。
+* **删除操作**：O(log n)，因为删除操作可能需要调整树的平衡。
+* **迭代操作**：由于树的有序性，迭代操作通常是 O(n)，需要遍历所有节点。
+
+**总结**
+
+红黑树是一种重要的自平衡二叉搜索树，用于 STL 中的 `std::map` 和 `std::set` 等容器。它通过节点着色和旋转操作来维持树的平衡，确保了高效的查找、插入和删除操作。红黑树的特性和操作使其在许多需要有序集合的应用场景中表现优异。
+
+**红黑树**（Red-Black Tree）是一种自平衡的二叉搜索树 BST（AVL 是另一种）
+
+* rb-tree 提供遍历操作和 iterators，按_中序遍历_遍历，便可以得到排序状态
+* 不能用 iterator 去改变元素的 key（其有严谨的排列规则）
+* rb-tree 提供两种 insertion 操作：`insert_unique()` 和 `insert_equal()`，前者表示 key 独一无二，后者表示 key 可重复
+
+#### set / multiset
 
 C++ 标准模板库（STL）中的 `std::set` 和 `std::multiset` 都是基于红黑树实现的容器，提供了有序集合的功能。虽然它们有许多相似之处，但也有一些重要的区别。下面详细介绍这两个容器的特点、操作、使用方法以及它们之间的主要区别。
+
+##### **<span style="color: #c7254e;">std::set</span>**
+
+**特点**
+
+1. **有序集合**：`std::set` 是一个有序集合容器，元素按照升序（默认）排列。你可以自定义排序规则。
+2. **唯一元素**：`std::set` 中的所有元素都是唯一的。如果尝试插入一个已经存在的元素，插入操作会失败。
+3. **基于红黑树**：底层使用红黑树实现，因此提供了对数级别的查找、插入和删除操作的时间复杂度。
+4. **不支持重复元素**：如果插入的元素已经存在，则 `std::set` 不会插入新的元素。
+5. **不支持直接访问**：`std::set` 不支持随机访问，无法通过索引访问元素，只能使用迭代器。
+
+**常用操作**
+
+* **插入元素**：`insert` 方法用于插入新元素。如果元素已经存在，插入操作将不会修改容器。
+
+```c++
+std::set<int> s;
+s.insert(1);
+s.insert(2);
+s.insert(2); // 插入失败，因为 2 已经存在
+```
+
+* **查找元素**：`find` 方法用于查找元素，返回指向该元素的迭代器，如果元素不存在则返回 `end()`。
+
+```c++
+auto it = s.find(2);
+if (it != s.end()) {
+    std::cout << "Found: " << *it << std::endl;
+}
+```
+
+* **删除元素**：`erase` 方法用于删除指定元素或范围的元素。
+
+```c++
+s.erase(2); // 删除元素 2
+```
+
+* **访问元素**：使用迭代器访问元素。
+
+```c++
+for (auto it = s.begin(); it != s.end(); ++it) {
+    std::cout << *it << " ";
+}
+```
+
+* **检查容器状态**：使用 `empty()` 和 `size()` 来检查容器是否为空以及容器的大小。
+
+```C++
+if (s.empty()) {
+    std::cout << "Set is empty." << std::endl;
+}
+std::cout << "Size: " << s.size() << std::endl;
+
+```
+
+##### **<span style="color: #c7254e;">std::multiset</span>**
+
+**特点**
+
+1. **有序集合**：`std::multiset` 也是一个有序集合容器，元素按照升序（默认）排列，支持自定义排序规则。
+2. **允许重复元素**：`std::multiset` 允许容器中包含重复的元素。多个相同的元素可以被插入到容器中。
+3. **基于红黑树**：与 `std::set` 相同，`std::multiset` 底层使用红黑树实现。
+4. **元素访问**：`std::multiset` 同样不支持随机访问，但可以通过迭代器进行遍历。
+
+**常用操作**
+
+* **插入元素**：`insert` 方法用于插入新元素，允许重复元素。
+
+```c++
+std::multiset<int> ms;
+ms.insert(1);
+ms.insert(2);
+ms.insert(2); // 允许插入重复元素
+```
+
+* **查找元素**：`find` 方法用于查找一个元素，返回指向该元素的迭代器。如果有多个相同的元素，`find` 只返回第一个找到的元素。
+
+```c++
+auto it = ms.find(2);
+if (it != ms.end()) {
+    std::cout << "Found: " << *it << std::endl;
+}
+```
+
+* **删除元素**：`erase` 方法用于删除指定元素。删除操作只会删除某一个元素的实例。
+
+```c++
+ms.erase(2); // 删除所有值为 2 的元素
+```
+
+* **访问元素**：使用迭代器访问所有元素。
+
+```c++
+for (auto it = ms.begin(); it != ms.end(); ++it) {
+    std::cout << *it << " ";
+}
+```
+
+* **检查容器状态**：使用 `empty()` 和 `size()` 来检查容器状态。
+
+```c++
+if (ms.empty()) {
+    std::cout << "Multiset is empty." << std::endl;
+}
+std::cout << "Size: " << ms.size() << std::endl;
+```
+
+**set和multiset的主要区别**
+
+1. **元素唯一性**：
+   * `std::set`：不允许重复元素，所有元素都是唯一的。
+   * `std::multiset`：允许重复元素，多个相同的元素可以存在于容器中。
+2. **插入操作**：
+   * `std::set`：插入操作失败时不会插入新元素（如果元素已经存在）。
+   * `std::multiset`：即使元素已存在，仍然可以插入多个相同的元素。
+3. **删除操作**：
+   * `std::set`：删除操作会删除指定的唯一元素。
+   * `std::multiset`：删除操作会删除指定值的所有实例，或者可以通过迭代器删除单个实例。
+
+##### 总结
+
+* `std::set` 和 `std::multiset` 都是基于红黑树实现的有序容器，提供了高效的元素查找、插入和删除操作。
+* `std::set` 不允许重复元素，而 `std::multiset` 允许重复元素。
+* 这两个容器提供了有序的存储和自动排序，支持高效的操作和遍历，但不支持随机访问或直接通过索引访问元素。
+
+选择 `std::set` 还是 `std::multiset` 主要取决于是否需要处理重复元素。如果需要一个不允许重复元素的集合，使用 `std::set`；如果允许重复元素，则使用 `std::multiset`。
+
+##### 测试代码
+
+```c++
+#include <set>
+#include <stdexcept>
+#include <string>
+#include <cstdlib> //abort()
+#include <cstdio>  //snprintf()
+#include <iostream>
+#include <ctime> 
+namespace jj06
+{
+	void test_multiset(long& value)
+	{
+		cout << "\ntest_multiset().......... \n";
+
+		//定义一个multiset容器c
+		multiset<string> c;
+		//定义一个字符数组buf，长度为10
+		char buf[10];
+		//记录开始时间
+		clock_t timeStart = clock();
+		//循环value次
+		for (long i = 0; i < value; ++i)
+		{
+			//尝试将随机数转换为字符串，并插入到multiset容器中
+			try {
+				snprintf(buf, 10, "%d", rand());
+				c.insert(string(buf));
+			}
+			//如果发生异常，输出异常信息，并终止程序
+			catch (exception& p) {
+				cout << "i=" << i << " " << p.what() << endl;
+				abort();
+			}
+		}
+		//输出运行时间
+		cout << "milli-seconds : " << (clock() - timeStart) << endl;
+		//输出multiset容器的大小
+		cout << "multiset.size()= " << c.size() << endl;
+		//输出multiset容器的最大大小
+		cout << "multiset.max_size()= " << c.max_size() << endl;	//214748364
+
+		//获取目标字符串
+		string target = get_a_target_string();
+		//使用std::find()函数查找目标字符串
+		{
+			timeStart = clock();
+			auto pItem = find(c.begin(), c.end(), target);	//比 c.find(...) 慢很多	
+			cout << "std::find(), milli-seconds : " << (clock() - timeStart) << endl;
+			//如果找到目标字符串，输出找到的信息
+			if (pItem != c.end())
+				cout << "found, " << *pItem << endl;
+			//否则输出未找到的信息
+			else
+				cout << "not found! " << endl;
+		}
+
+		//使用multiset容器的find()函数查找目标字符串
+		{
+			timeStart = clock();
+			auto pItem = c.find(target);		//比 std::find(...) 快很多							
+			cout << "c.find(), milli-seconds : " << (clock() - timeStart) << endl;
+			//如果找到目标字符串，输出找到的信息
+			if (pItem != c.end())
+				cout << "found, " << *pItem << endl;
+			//否则输出未找到的信息
+			else
+				cout << "not found! " << endl;
+		}
+
+		//清空multiset容器
+		c.clear();
+		//测试可移动的multiset容器
+		test_moveable(multiset<MyString>(), multiset<MyStrNoMove>(), value);
+	}
+}
+```
+
+安插元素是使用 `insert()`，其位置由红黑树决定
+
+容器自己有 `c.find()`，其会比全局的 `::find()` 快
+
+**测试结果**
+
+![1-15](./images/1-15.png)
+
+#### map / multimap
+
+在 C++ 标准模板库（STL）中，std::map 和 std::multimap 是两种基于红黑树实现的关联容器。它们都用于存储键值对（key-value pairs），但在处理键的唯一性和重复性方面有所不同。下面详细介绍这两种容器的特点、操作、使用方法以及它们之间的主要区别。
+
+##### **<span style="color: #c7254e;">std::map</span>**
+
+**特点**
+
+1. **有序的键值对**：`std::map` 是一个有序的关联容器，存储的键值对按照键的升序（默认）排列。可以自定义排序规则。
+2. **唯一键**：`std::map` 中的所有键都是唯一的。如果尝试插入一个已经存在的键，插入操作会失败，容器中的键值对不会被覆盖。
+3. **基于红黑树**：底层使用红黑树实现，因此提供了对数级别的查找、插入和删除操作的时间复杂度。
+4. **不支持重复键**：`std::map` 不允许有重复的键。每个键只能对应一个值。
+5. **不支持直接访问**：`std::map` 不支持随机访问，无法通过索引访问元素，只能使用迭代器。
+
+**常用操作**
+
+* **插入键值对**：`insert` 方法用于插入新键值对。如果键已经存在，插入操作将不会修改容器。
+
+```c++
+std::map<int, std::string> m;
+m.insert({1, "one"});
+m.insert({2, "two"});
+m.insert({2, "deux"}); // 插入失败，因为键 2 已经存在
+```
+
+* **查找键**：`find` 方法用于查找一个键，返回指向该键值对的迭代器。如果键不存在，则返回 `end()`。
+
+```c++
+auto it = m.find(2);
+if (it != m.end()) {
+    std::cout << "Found: " << it->second << std::endl; // 输出 "two"
+}
+```
+
+* **删除键值对**：`erase` 方法用于删除指定键的键值对。
+
+```c++
+m.erase(2); // 删除键 2 对应的键值对
+```
+
+* **访问键值对**：可以通过迭代器访问所有键值对。
+
+```c++
+for (const auto& pair : m) {
+    std::cout << pair.first << " => " << pair.second << std::endl;
+}
+```
+
+* **检查容器状态**：使用 `empty()` 和 `size()` 来检查容器状态。
+
+```c++
+if (m.empty()) {
+    std::cout << "Map is empty." << std::endl;
+}
+std::cout << "Size: " << m.size() << std::endl;
+```
+
+##### **<span style="color: #c7254e;">std::multimap</span>**
+
+**特点**
+
+1. **有序的键值对**：`std::multimap` 是一个有序的关联容器，存储的键值对按照键的升序（默认）排列，支持自定义排序规则。
+2. **允许重复键**：`std::multimap` 允许多个键值对具有相同的键。这意味着同一个键可以对应多个值。
+3. **基于红黑树**：与 `std::map` 相同，`std::multimap` 底层使用红黑树实现。
+4. **支持重复键**：`std::multimap` 允许键重复，因此可以插入多个具有相同键的键值对。
+5. **不支持直接访问**：`std::multimap` 不支持随机访问，但可以使用迭代器进行遍历。
+
+**常用操作**
+
+* **插入键值对**：`insert` 方法用于插入新键值对，可以插入具有相同键的多个值。
+
+```c++
+std::multimap<int, std::string> mm;
+mm.insert({1, "one"});
+mm.insert({2, "two"});
+mm.insert({2, "deux"}); // 允许插入重复的键
+```
+
+* **查找键**：`find` 方法用于查找一个键，返回指向第一个具有该键的键值对的迭代器。如果键不存在，则返回 `end()`。
+
+```c++
+auto it = mm.find(2);
+if (it != mm.end()) {
+    std::cout << "Found: " << it->second << std::endl; // 输出 "two"（第一个匹配的值）
+}
+```
+
+* **删除键值对**：`erase` 方法用于删除指定键的所有键值对，或者通过迭代器删除单个键值对。
+
+```c++
+mm.erase(2); // 删除所有键为 2 的键值对
+```
+
+* **访问键值对**：可以通过迭代器访问所有键值对。
+
+```c++
+for (const auto& pair : mm) {
+    std::cout << pair.first << " => " << pair.second << std::endl;
+}
+```
+
+* **检查容器状态**：使用 `empty()` 和 `size()` 来检查容器状态。
+
+```c++
+if (mm.empty()) {
+    std::cout << "Multimap is empty." << std::endl;
+
+std::cout << "Size: " << mm.size() << std::endl;
+```
+
+##### map 和 multimap 的主要区别
+
+1. **键的唯一性**：
+   * `std::map`：不允许重复键，每个键只能对应一个值。
+   * `std::multimap`：允许重复键，多个相同的键可以对应不同的值。
+2. **插入操作**：
+   * `std::map`：插入操作失败时不会插入新键值对（如果键已经存在）。
+   * `std::multimap`：允许插入具有相同键的多个键值对。
+3. **删除操作**：
+   * `std::map`：删除操作会删除指定的唯一键及其对应的值。
+   * `std::multimap`：删除操作会删除指定键的所有键值对，或者通过迭代器删除单个键值对。
+4. **查找操作**：
+   * `std::map`：`find` 方法查找特定的键，返回第一个匹配的键值对。
+   * `std::multimap`：`find` 方法查找特定的键，返回第一个匹配的键值对，但可以有多个匹配项。可以使用 `equal_range` 方法查找所有具有相同键的键值对。
+
+##### 总结
+
+* `std::map` 和 `std::multimap` 都是基于红黑树实现的有序关联容器，用于存储键值对。
+* `std::map` 不允许重复的键，而 `std::multimap` 允许键重复。
+* 这两种容器都提供了高效的查找、插入和删除操作，并按键排序，但不支持随机访问。
+* 选择使用 `std::map` 还是 `std::multimap` 取决于是否需要处理重复的键值对。如果需要唯一键，则使用 `std::map`；如果需要处理多个具有相同键的值，则使用 `std::multimap`。
+
+##### 测试代码
+
+```c++
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <cstdlib> //abort()
+#include <cstdio>  //snprintf()
+#include <iostream>
+#include <ctime> 
+namespace jj07
+{
+	void test_multimap(long& value)
+	{
+		cout << "\ntest_multimap().......... \n";
+
+		//定义一个multimap，键类型为long，值类型为string
+		multimap<long, string> c;
+		char buf[10];
+
+		//记录开始时间
+		clock_t timeStart = clock();
+		for (long i = 0; i < value; ++i)
+		{
+			try {
+				//将随机数转换为字符串
+				snprintf(buf, 10, "%d", rand());
+				//multimap 不可使用 [] 做 insertion 
+				c.insert(pair<long, string>(i, buf));
+			}
+			catch (exception& p) {
+				cout << "i=" << i << " " << p.what() << endl;
+				abort();
+			}
+		}
+		//输出运行时间
+		cout << "milli-seconds : " << (clock() - timeStart) << endl;
+		//输出multimap的大小
+		cout << "multimap.size()= " << c.size() << endl;
+		//输出multimap的最大大小
+		cout << "multimap.max_size()= " << c.max_size() << endl;	//178956970	
+
+		//获取一个目标值
+		long target = get_a_target_long();
+		//记录开始时间
+		timeStart = clock();
+		//查找目标值
+		auto pItem = c.find(target);
+		//输出运行时间
+		cout << "c.find(), milli-seconds : " << (clock() - timeStart) << endl;
+		//判断是否找到目标值
+		if (pItem != c.end())
+			cout << "found, value=" << (*pItem).second << endl;
+		else
+			cout << "not found! " << endl;
+
+		//清空multimap
+		c.clear();
+	}
+}
+```
+
+`c.insert(pair<long, string>(i, buf));` 中 *key* 是从1~1000000，*value* 是随机取的，将其组合为 *pair* 插入
+
+**测试结果**
+
+![1-16](./images/1-16.png)
+
+#### 哈希表HashTable
+
+在 C++ 标准库中，哈希表（Hash Table）是一种用于实现高效查找、插入和删除操作的数据结构。虽然 C++ 标准库没有一个名为 HashTable 的直接容器，但哈希表的概念在 std::unordered_map 和 std::unordered_set 中得到了实现。下面详细介绍哈希表的工作原理、其在 STL 中的实现以及一些相关操作。
+
+**哈希表的基本概念**
+
+1. **哈希函数（Hash Function）**
+
+哈希函数是将键（key）映射到哈希表中的桶（bucket）位置的函数。一个好的哈希函数可以将键均匀地分布在哈希表中，以减少冲突。
+
+* **作用**：计算键的哈希值，将其映射到哈希表中的桶。
+* **要求**：哈希函数应尽量避免哈希冲突，即不同的键应映射到不同的桶。
+
+2. **桶（Bucket）**
+
+桶是哈希表中存储元素的容器。哈希表通过哈希函数计算键的哈希值，将键值对放置到相应的桶中。
+
+* **作用**：组织和存储键值对。
+* **实现**：通常每个桶内部是一个链表、平衡树或者另一个哈希表。
+
+3. **哈希冲突（Hash Collision）**
+
+哈希冲突发生在不同的键被映射到相同的桶中。解决冲突的常用方法包括链表法（链式哈希）和开放定址法（如线性探测）。
+
+* **链式哈希**：在每个桶内维护一个链表（或其他结构），所有映射到同一桶的元素都存储在这个链表中。
+* **开放定址法**：当发生冲突时，通过探测其他桶来寻找空位置。
+
+4.  **负载因子（Load Factor）**
+
+负载因子是哈希表中元素数量与桶数量的比值。负载因子过高会导致性能下降，因为冲突增多。
+
+* **作用**：影响哈希表的性能。
+* **调整**：通过重新哈希（rehashing）来增加桶的数量，降低负载因子。
+
+#### unordered_map和unordered_set
+
+这两个 STL 容器基于哈希表实现，提供了高效的查找、插入和删除操作。
+
+**<span style="color: #c7254e;">std::unordered_map</span>**
+
+* **定义**：存储键值对（key-value pairs），每个键对应一个值。
+
+* **特点**：
+
+  * **唯一键**：每个键在容器中必须唯一。
+  * **平均时间复杂度**：查找、插入和删除操作的平均时间复杂度为 O(1)。
+  * **哈希函数**：键值对通过哈希函数映射到桶中。
+  * **不支持有序操作**：元素的顺序是不确定的。
+
+* **常用操作**：
+
+  * **插入**：`insert` 方法用于添加新的键值对。
+
+  ```c++
+  std::unordered_map<int, std::string> umap;
+  umap.insert({1, "one"});
+  umap.insert({2, "two"});
+  ```
+
+  * **查找**：`find` 方法用于查找键，返回对应的迭代器。
+
+  ```c++
+  auto it = umap.find(1);
+  if (it != umap.end()) {
+      std::cout << "Found: " << it->second << std::endl;
+  }
+  ```
+
+  * **删除**：`erase` 方法用于删除指定的键。
+
+  ```c++
+  umap.erase(1);
+  ```
+
+  * **访问**：使用迭代器遍历容器。
+
+  ```c++
+  for (const auto& pair : umap) {
+      std::cout << pair.first << " => " << pair.second << std::endl;
+  }
+  ```
+
+  * **调整桶数量**：`rehash` 方法可以调整哈希表的桶数量。
+
+  ```c++
+  umap.rehash(20); // 调整到至少 20 个桶
+  ```
+
+  **<span style="color: #c7254e;">std::unordered_set</span>**
+
+- **定义**：存储唯一的元素，不存储与元素关联的值。
+- **特点**：
+  - **唯一元素**：容器中不允许重复的元素。
+  - **平均时间复杂度**：查找、插入和删除操作的平均时间复杂度为 O(1)。
+  - **哈希函数**：元素通过哈希函数映射到桶中。
+  - **不支持有序操作**：元素的顺序是不确定的。
+  
+- **常用操作**：
+
+  - **插入**：`insert` 方法用于添加新的元素。
+
+  ```c++
+  std::unordered_set<int> uset;
+  uset.insert(1);
+  uset.insert(2);
+  ```
+
+  * **查找**：`find` 方法用于查找元素，返回对应的迭代器。
+
+  ```c++
+  auto it = uset.find(1);
+  if (it != uset.end()) {
+      std::cout << "Found: " << *it << std::endl;
+  }
+  ```
+
+  * **删除**：`erase` 方法用于删除指定的元素。
+
+  ```c++
+  uset.erase(1);
+  ```
+
+  * **访问**：使用迭代器遍历容器。
+
+  ```c++
+  for (const auto& elem : uset) {
+      std::cout << elem << " ";
+  }
+  ```
+
+  * **调整桶数量**：`rehash` 方法可以调整哈希表的桶数量。
+
+  ```c++
+  uset.rehash(20); // 调整到至少 20 个桶
+  ```
+
+  **哈希表的优点和缺点**
+
+  优点
+
+  1. **高效查找**：提供平均 O(1) 的查找时间复杂度。
+  2. **快速插入和删除**：插入和删除操作的平均时间复杂度为 O(1)。
+  3. **动态大小调整**：哈希表可以根据负载因子的变化动态调整桶的数量（rehashing）。
+
+  缺点
+
+  1. **无序**：元素的顺序是不确定的，不支持按顺序遍历。
+  2. **哈希冲突**：需要处理哈希冲突，可能影响性能。
+  3. **内存使用**：为了维持哈希表的效率，可能会使用更多的内存。
+
+  **总结**
+
+  * `std::unordered_map` 和 `std::unordered_set` 是 C++ STL 中的哈希表实现，提供了高效的查找、插入和删除操作。
+  * `std::unordered_map` 存储键值对，要求键唯一；`std::unordered_set` 存储唯一元素。
+  * 哈希表的性能依赖于哈希函数的质量和负载因子的管理。
+  * 哈希表不支持有序操作，元素的顺序是不确定的，但它们在需要快速查找和插入的应用场景中非常有用。
+
+#### unordered容器
+
+在C++标准模板库（STL）中，`unordered`容器是基于哈希表实现的一类容器，包括以下四种主要类型：
+
+1. `std::unordered_set`
+2. `std::unordered_multiset`
+3. `std::unordered_map`
+4. `std::unordered_multimap`
+
+这些容器的共同特点是使用哈希表存储数据，因此它们能够提供常数时间复杂度的查找、插入和删除操作（平均情况下）。不过，这些容器中的元素是无序的，因为它们的顺序由哈希函数决定。
+
+**`unordered` 容器的通用特点**
+
+* **无序存储**：所有 `unordered` 容器中的元素或键值对的顺序都是不确定的，因为它们是基于哈希函数分配到不同的桶中的。
+* **哈希函数**：这些容器的性能很大程度上依赖于哈希函数的质量。一个好的哈希函数能够减少冲突，提高容器的性能。
+* **负载因子与 rehashing**：容器会根据负载因子的变化自动调整桶的数量，以确保查找、插入和删除操作的效率。
+
+**使用场景**
+
+* **快速查找**：当需要快速查找元素或键值对时，`unordered` 容器非常适合。
+* **无序数据**：当不关心元素的顺序，只关注存储和查找效率时，使用 `unordered` 容器更为合适。
+* **键值对存储**：`unordered_map` 和 `unordered_multimap` 适用于需要根据键管理和访问值的场景，如字典或关联数组。
+
+**总结**
+
+C++ STL 中的 unordered 容器提供了基于哈希表的高效数据管理方式，适用于需要快速查找和管理无序数据的场景。unordered_set 和 unordered_multiset 处理唯一和重复的元素集合，而 unordered_map 和 unordered_multimap 则用于管理唯一和重复的键值对。通过使用合适的哈希函数和适当管理负载因子，这些容器可以显著提升程序的性能。
+
+**测试代码**
+
+![1-18](./images/1-18.png)
+
+```c++
+#include <unordered_set>
+#include <stdexcept>
+#include <string>
+#include <cstdlib> //abort()
+#include <cstdio>  //snprintf()
+#include <iostream>
+#include <ctime> 
+namespace jj08
+{
+	void test_unordered_multiset(long& value)
+	{
+		//输出提示信息
+		cout << "\ntest_unordered_multiset().......... \n";
+
+		//定义一个unordered_multiset类型的变量c
+		unordered_multiset<string> c;
+		//定义一个字符数组buf
+		char buf[10];
+
+		//记录开始时间
+		clock_t timeStart = clock();
+		//循环插入value个随机字符串
+		for (long i = 0; i < value; ++i)
+		{
+			try {
+				//将随机数转换为字符串
+				snprintf(buf, 10, "%d", rand());
+				//将字符串插入unordered_multiset
+				c.insert(string(buf));
+			}
+			catch (exception& p) {
+				//输出错误信息
+				cout << "i=" << i << " " << p.what() << endl;
+				//终止程序
+				abort();
+			}
+		}
+		//输出插入时间
+		cout << "milli-seconds : " << (clock() - timeStart) << endl;
+		//输出unordered_multiset的大小
+		cout << "unordered_multiset.size()= " << c.size() << endl;
+		//输出unordered_multiset的最大大小
+		cout << "unordered_multiset.max_size()= " << c.max_size() << endl;	//357913941
+		//输出unordered_multiset的桶数量
+		cout << "unordered_multiset.bucket_count()= " << c.bucket_count() << endl;
+		//输出unordered_multiset的负载因子
+		cout << "unordered_multiset.load_factor()= " << c.load_factor() << endl;
+		//输出unordered_multiset的最大负载因子
+		cout << "unordered_multiset.max_load_factor()= " << c.max_load_factor() << endl;
+		//输出unordered_multiset的最大桶数量
+		cout << "unordered_multiset.max_bucket_count()= " << c.max_bucket_count() << endl;
+		//输出每个桶中的元素数量
+		for (unsigned i = 0; i < 20; ++i) {
+			cout << "bucket #" << i << " has " << c.bucket_size(i) << " elements.\n";
+		}
+
+		//获取目标字符串
+		string target = get_a_target_string();
+		{
+			//记录开始时间
+			timeStart = clock();
+			//使用std::find查找目标字符串
+			auto pItem = find(c.begin(), c.end(), target);	//比 c.find(...) 慢很多	
+			//输出查找时间
+			cout << "std::find(), milli-seconds : " << (clock() - timeStart) << endl;
+			//判断是否找到目标字符串
+			if (pItem != c.end())
+				cout << "found, " << *pItem << endl;
+			else
+				cout << "not found! " << endl;
+		}
+
+		{
+			//记录开始时间
+			timeStart = clock();
+			//使用c.find查找目标字符串
+			auto pItem = c.find(target);		//比 std::find(...) 快很多							
+			//输出查找时间
+			cout << "c.find(), milli-seconds : " << (clock() - timeStart) << endl;
+			//判断是否找到目标字符串
+			if (pItem != c.end())
+				cout << "found, " << *pItem << endl;
+			else
+				cout << "not found! " << endl;
+		}
+
+		//清空unordered_multiset
+		c.clear();
+		//测试可移动对象
+		test_moveable(unordered_multiset<MyString>(), unordered_multiset<MyStrNoMove>(), value);
+	}
+}
+```
+
+**测试结果**
+
+![1-17](./images/1-17.png)
+
+## 3.分配器
+
+
+
