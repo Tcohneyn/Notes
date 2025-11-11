@@ -225,7 +225,7 @@ UFUNCTION(BlueprintNativeEvent)
 
 > *这个函数设计为可以被蓝图覆盖，但也具有默认的原生实现。声明了一个与主函数同名的附加函数，但末尾添加了_Implementation，代码应写在其中。如果未找到蓝图覆盖，自动生成的代码将调用_Implementation 方法。*
 
-## Force As Function
+### Force As Function
 
 ```
 UFUNCTION(meta=(ForceAsFunction))
@@ -238,7 +238,7 @@ UFUNCTION(BlueprintImplementableEvent, meta=(ForceAsFunction))
 void PreferFunction();
 ```
 
-## **Blueprint Pure**
+### **Blueprint Pure**
 
 ```
 UFUNCTION(BlueprintPure)
@@ -266,6 +266,22 @@ int32 BlueprintPureFalseFunction() const;
 
 ![](./images/UProperty/3.webp)
 
+### **Blueprint Internal Use Only**
+
+```
+UFUNCTION(meta=(BlueprintInternalUseOnly=true))
+```
+
+> *此函数是内部实现细节，用于实现其他函数或节点。它永远不会直接暴露在蓝图图中。*
+
+### **Default To Self**
+
+```
+UFUNCTION(meta=(DefaultToSelf))
+```
+
+> *对于 BlueprintCallable 函数，这意味着 Object 属性的命名默认值应该是节点的自身上下文。*
+
 # UCLASS
 
 ## Blueprint(蓝图)
@@ -292,6 +308,99 @@ class UAnimalBase : public UObject
 ### Blueprintable
 
 > *将此类作为创建蓝图的可接受基类公开。默认情况下为不可创建蓝图，除非另有继承。此规范由子类继承。*
+
+### Blueprint Type
+
+```
+UCLASS(BlueprintType)
+```
+
+> *将此类公开为蓝图中可用于变量的类型。*
+
+## C++
+
+## **Minimal A P I**
+
+```
+UCLASS(MinimalAPI)
+```
+
+我觉得 MinimalAPI 有点难懂。如果你有一个类存在于一个模块中，并且你想在另一个模块中将其转换为该类，那么我建议添加 MinimalAPI。
+
+如果按“出口量”升序排列，我是这样考虑的：
+
+1. 没有类说明符，没有 `API` 宏：没有任何导出内容，该类及其函数仅在其自身的模块内可用。
+
+2. `UCLASS(MinimalAPI)` ，没有 `API` 宏：该类可以 `Cast<T>` 为其模块之外的类型，仅此而已。
+
+3. `MYMODULE_API` 对某些函数有限制：只有这些函数才能在其模块外部调用。
+4. `MYMODULE_API` 类本身：所有函数都可以在其模块外部调用。
+
+一般来说，只标记最基本的功能（例如 MYMODULE_API）是一种不错的做法。
+
+*仅导出类的类型信息供其他模块使用。该类可以被强制转换，但其函数（内联方法除外）无法被调用。这样可以缩短编译时间，因为对于那些不需要所有函数都能被其他模块访问的类，不会导出所有内容。*
+
+这是一段关于 Unreal Engine (UE) 中**类声明**和**模块API控制**的代码注释。它的核心是使用 `MinimalAPI`关键字来优化模块间依赖和编译时间。
+
+```
+// 例如，在 MyGameplayModule 模块中，我们定义了一个类，并希望在其他模块中能够对其进行类型转换（如动态转换）。
+// 注意：我们在此并*没有*添加 MYGAMEPLAYMODULE_API 宏
+UCLASS(MinimalAPI) // 使用MinimalAPI标记的UCLASS宏
+class ASomeGameplayClass : public AActor // 类ASomeGameplayClass继承自AActor
+```
+
+## Config(配置)
+
+### **Config**
+
+```
+UCLASS(Config="abc")
+```
+
+> *指示此类允许将数据存储在配置文件（.ini）中。如果存在使用 `config` 或 `globalconfig` 说明符声明的类属性，则此说明符会将这些属性存储在指定的配置文件中。此说明符会传播到所有子类且无法被否定，但子类可以通过重新声明 `config` 说明符并提供不同的 `ConfigName` 来更改配置文件。常见的 `ConfigName` 值包括“Engine”、“Editor”、“Input”和“Game”。*
+
+### **Default Config**
+
+```
+UCLASS(DefaultConfig)
+```
+
+> *对象配置仅保存到默认 INI 文件中，绝不保存到本地 INI 文件中。*
+
+### Per Object Config
+
+```
+UCLASS(PerObjectConfig)
+```
+
+> *此类的配置信息将按对象存储，每个对象在 .ini 文件中都有一个以对象名称命名的部分，格式为 [对象名 类名]。此配置信息会传递给子类。*
+
+### **Config Do Not Check Defaults**
+
+```
+UCLASS(ConfigDoNotCheckDefaults)
+```
+
+### **Global User Config**
+
+```
+UCLASS(GlobalUserConfig)
+```
+
+添加此内容似乎会导致 .ini 文件保存在 `Base` 中。
+
+引擎源代码中只有这样一个例子，即 AndroidSDKSettings。
+
+```
+// Causes the settings to be saved in BaseBlah.ini
+UCLASS(Config=Blah, GlobalUserConfig)
+```
+
+### **Project User Config**
+
+```
+UCLASS(ProjectUserConfig)
+```
 
 ## UI
 
@@ -325,4 +434,26 @@ UCLASS(meta=(EntryInterface="abc"))
  */
 UCLASS(meta = (EntryInterface = UserObjectListEntry))
 class UMG_API UListView : public UListViewBase, public ITypedUMGListView<UObject*>
+```
+
+# UPARAM
+
+# 采摘者(Pickers)
+
+### **类别**(**Categories**)
+
+```
+UPARAM(meta=(Categories="abc"))
+```
+
+限制 `UFUNCTION` 上可选择的游戏玩法标签。其工作方式与 `UPROPERTY` `Categories` 元标志相同。
+
+```
+UFUNCTION(BlueprintCallable)
+void SellItems(UPARAM(meta=(Categories="Inventory.Item") )FGameplayTag Itemtag, int32 Count);
+```
+
+```
+UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = GameplayEffects)
+virtual void UpdateActiveGameplayEffectSetByCallerMagnitude(FActiveGameplayEffectHandle ActiveHandle, UPARAM(meta=(Categories="SetByCaller")) FGameplayTag SetByCallerTag, float NewValue);
 ```
