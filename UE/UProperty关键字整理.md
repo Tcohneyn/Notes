@@ -282,6 +282,94 @@ UFUNCTION(meta=(DefaultToSelf))
 
 > *对于 BlueprintCallable 函数，这意味着 Object 属性的命名默认值应该是节点的自身上下文。*
 
+# Network(网络)
+
+## **Server**
+
+> *该函数仅在服务器端执行。它声明了一个与主函数同名但末尾添加了 `_Implementation` 的附加函数，代码应在此处编写。自动生成的代码会在必要时调用 `_Implementation` 方法。*
+
+### **Client**
+
+```
+UFUNCTION(Client)
+```
+
+> 该函数仅在拥有调用该函数的对象的客户端上执行。它声明了一个与主函数同名但末尾添加了 `_Implementation` 的附加函数。自动生成的代码会在必要时调用 `_Implementation` 方法。
+
+### **Remote**
+
+```
+UFUNCTION(Remote)
+```
+
+> *RPC 在连接的远程端执行。连接的远程端可以是服务器或客户端，但 RPC 必须在客户端拥有的 Actor 上调用。RPC 的行为兼具客户端 RPC 和服务端 RPC 的特点，但永远不会在连接的本地端执行，而只会在远程端执行。*
+
+### **Net Multicast**
+
+```
+UFUNCTION(NetMulticast)
+```
+
+> *该函数既在服务器本地执行，也复制到所有客户端，而不管 Actor 的 NetOwner 是什么。*
+
+### **Blueprint Authority Only**
+
+```
+UFUNCTION(BlueprintAuthorityOnly)
+```
+
+> *只有在具有网络权限的机器（服务器、专用服务器或单人游戏）上运行时，此函数才会从 Blueprint 代码执行。*
+
+### **With Validation**
+
+```
+UFUNCTION(WithValidation)
+```
+
+> *声明一个与主函数同名但末尾添加 `_Validate` 的附加函数。该函数接受相同的参数，并返回一个布尔值，指示是否应继续调用主函数。*
+
+### **Blueprint Cosmetic**
+
+```
+UFUNCTION(BlueprintCosmetic)
+```
+
+> *此功能仅为外观装饰，无法在专用服务器上运行。*
+
+### **Reliable**
+
+```
+UFUNCTION(Reliable)
+```
+
+要使复制函数正常工作，该类及其父类必须标记为已复制。请检查您的构造函数是否包含 `SetIsReplicatedByDefault(true)` 。
+
+> *该功能通过网络复制，保证无论带宽如何或网络出现何种错误，都能成功送达。仅当与客户端或服务器端配合使用时有效。*
+
+### **Unreliable**
+
+```
+UFUNCTION(Unreliable)
+```
+
+*该功能通过网络复制，但可能因带宽限制或网络错误而失败。仅当与客户端或服务器端配合使用时有效。*
+
+### **Service Request**
+
+```
+UFUNCTION(ServiceRequest)
+```
+
+> *此函数是一个 RPC（远程过程调用）服务请求。这意味着需要使用 NetMulticast 和 Reliable 协议。*
+
+### **Service Response**
+
+```
+UFUNCTION(ServiceResponse)
+```
+
+*此函数是 RPC 服务响应。这意味着需要使用 NetMulticast 和 Reliable 协议。*
+
 # UCLASS
 
 ## Blueprint(蓝图)
